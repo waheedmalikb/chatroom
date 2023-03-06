@@ -2,91 +2,92 @@
 <html>
 <head>
 	<title>Chat Room</title>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" href="style.css">
+	<style>
+		#chat-area {
+			height: 400px;
+			overflow-y: scroll;
+			border: 1px solid #ccc;
+			padding: 10px;
+		}
+	</style>
 </head>
 <body>
-	<h1>Chat Room</h1>
-	<div id="chatbox"></div>
-	<input type="text" id="message">
-	<button onclick="sendMessage()">Send</button>
-	<input type="file" id="fileInput">
-	<button onclick="uploadFile()">Upload</button>
-	<video id="video"></video>
-	<button onclick="startVideo()">Start Video</button>
-	<button onclick="stopVideo()">Stop Video</button>
+	<div id="chat-area"></div>
+	<div>
+		<input type="text" id="user-input" placeholder="Type your message here...">
+		<input type="file" id="file-input" style="display: none;">
+		<button id="send-btn">Send</button>
+		<button id="upload-btn">Upload</button>
+	</div>
+
 	<script>
-        var signalingChannel = new WebSocket("ws://localhost:12345");
+		// Select elements
+		var chatArea = document.getElementById("chat-area");
+		var userInput = document.getElementById("user-input");
+		var fileInput = document.getElementById("file-input");
+		var sendBtn = document.getElementById("send-btn");
+		var uploadBtn = document.getElementById("upload-btn");
 
-var peerConnection = new RTCPeerConnection();
+		// Send message function
+		function sendMessage(message) {
+			// Create new chat message element
+			var chatMessage = document.createElement("p");
+			chatMessage.innerText = message;
 
-navigator.mediaDevices.getUserMedia({video: true, audio: true}).then(function(stream) {
-  var localVideo = document.createElement("video");
-  localVideo.srcObject = stream;
-  localVideo.play();
-  peerConnection.addStream(stream);
-});
+			// Add chat message element to chat area
+			chatArea.appendChild(chatMessage);
+		}
 
-peerConnection.onaddstream = function(event) {
-  var remoteVideo = document.getElementById("video");
-  remoteVideo.srcObject = event.stream;
-  remoteVideo.play();
-};
+		// Send media function
+		function sendMedia(fileUrl) {
+			// Create new media element
+			var mediaElement;
+			if (fileUrl.endsWith(".mp4")) {
+				mediaElement = document.createElement("video");
+				mediaElement.setAttribute("controls", "");
+			} else {
+				mediaElement = document.createElement("img");
+			}
+			mediaElement.setAttribute("src", fileUrl);
 
-signalingChannel.onmessage = function(event) {
-  var message = JSON.parse(event.data);
-  if (message.type === "offer") {
-    peerConnection.setRemoteDescription(new RTCSessionDescription(message));
-    peerConnection.createAnswer().then(function(description) {
-      peerConnection.setLocalDescription(description);
-      signalingChannel.send(JSON.stringify(description));
-    });
-  } else if (message.type === "answer") {
-    peerConnection.setRemoteDescription(new RTCSessionDescription(message));
-  } else if (message.type === "icecandidate") {
-    peerConnection.addIceCandidate(new RTCIceCandidate(message.candidate));
-  } else if (message.type === "message") {
-    var chatbox = document.getElementById("chatbox");
-    chatbox.innerHTML += "<p>" + message.content + "</p>";
-  } else if (message.type === "file") {
-    // handle file received from other user
-  }
-};
+			// Add media element to chat area
+			chatArea.appendChild(mediaElement);
+		}
 
-function sendMessage() {
-  var message = document.getElementById("message").value;
-  var data = {type: "message", content: message};
-  signalingChannel.send(JSON.stringify(data));
-  var chatbox = document.getElementById("chatbox");
-  chatbox.innerHTML += "<p>" + message + "</p>";
-}
+		// Add event listener to send button
+		sendBtn.addEventListener("click", function(event) {
+			event.preventDefault();
+			sendMessage(userInput.value);
+			userInput.value = "";
+		});
 
-function uploadFile() {
-  var fileInput = document.getElementById("fileInput");
-  var file = fileInput.files[0];
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    var fileContent = e.target.result;
-    var data = {type: "file", content: fileContent};
-    signalingChannel.send(JSON.stringify(data));
-  }
-  reader.readAsDataURL(file);
-}
+		// Add event listener to user input field for "enter" key
+		userInput.addEventListener("keyup", function(event) {
+			event.preventDefault();
+			if (event.keyCode === 13) {
+				sendMessage(userInput.value);
+				userInput.value = "";
+			}
+		});
 
-function startVideo() {
-  peerConnection.createOffer().then(function(description) {
-    peerConnection.setLocalDescription(description);
-    signalingChannel.send(JSON.stringify(description));
-  });
-}
+		// Add event listener to upload button
+		uploadBtn.addEventListener("click", function(event) {
+			event.preventDefault();
+			fileInput.click();
+		});
 
-function stopVideo() {
-  var remoteVideo = document.getElementById("video");
-  remoteVideo.pause();
-  remoteVideo.srcObject = null;
-}
-
-    </script>
+		// Add event listener to file input field
+		fileInput.addEventListener("change", function(event) {
+			event.preventDefault();
+			var file = event.target.files[0];
+			if (file) {
+				var fileReader = new FileReader();
+				fileReader.onload = function(event) {
+					sendMedia(event.target.result);
+				};
+				fileReader.readAsDataURL(file);
+			}
+		});
+	</script>
 </body>
 </html>
