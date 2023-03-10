@@ -7,30 +7,26 @@
     <title>Document</title>
 </head>
 <body>
-    <!-- video element jisme screen aur webcam ka output display kiya jayega -->
+    <!-- video element jisme screen capture display kiya jayega -->
 <video id="video" width="640" height="480" autoplay></video>
 
 <script>
   // video element ko select kare
   const video = document.getElementById('video');
 
-  // screen share ke liye media stream ko capture kare
+  // screen capture ke liye media stream ko capture kare
   navigator.mediaDevices.getDisplayMedia({ video: true })
-    .then(function(screenStream) {
-      // webcam ke liye media stream ko capture kare
-      return navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-    })
-    .then(function(webcamStream) {
-      // dono streams ko merge karke ek hi stream banae
-      const mergedStream = new MediaStream([...webcamStream.getTracks(), ...screenStream.getTracks()]);
-
-      // video element ko merged stream se attach kare
-      video.srcObject = mergedStream;
+    .then(function(stream) {
+      // video element ko screen capture stream se attach kare
+      video.srcObject = stream;
     })
     .catch(function(error) {
-      console.error('Error capturing video:', error);
+      console.error('Error capturing screen:', error);
     });
-</script>
+    
+ 
 
+    
+</script>
 </body>
 </html>
