@@ -1,93 +1,36 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<title>Chat Room</title>
-	<style>
-		#chat-area {
-			height: 400px;
-			overflow-y: scroll;
-			border: 1px solid #ccc;
-			padding: 10px;
-		}
-	</style>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
 </head>
 <body>
-	<div id="chat-area"></div>
-	<div>
-		<input type="text" id="user-input" placeholder="Type your message here...">
-		<input type="file" id="file-input" style="display: none;">
-		<button id="send-btn">Send</button>
-		<button id="upload-btn">Upload</button>
-	</div>
+    <!-- video element jisme screen aur webcam ka output display kiya jayega -->
+<video id="video" width="640" height="480" autoplay></video>
 
-	<script>
-		// Select elements
-		var chatArea = document.getElementById("chat-area");
-		var userInput = document.getElementById("user-input");
-		var fileInput = document.getElementById("file-input");
-		var sendBtn = document.getElementById("send-btn");
-		var uploadBtn = document.getElementById("upload-btn");
+<script>
+  // video element ko select kare
+  const video = document.getElementById('video');
 
-		// Send message function
-		function sendMessage(message) {
-			// Create new chat message element
-			var chatMessage = document.createElement("p");
-			chatMessage.innerText = message;
+  // screen share ke liye media stream ko capture kare
+  navigator.mediaDevices.getDisplayMedia({ video: true })
+    .then(function(screenStream) {
+      // webcam ke liye media stream ko capture kare
+      return navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    })
+    .then(function(webcamStream) {
+      // dono streams ko merge karke ek hi stream banae
+      const mergedStream = new MediaStream([...webcamStream.getTracks(), ...screenStream.getTracks()]);
 
-			// Add chat message element to chat area
-			chatArea.appendChild(chatMessage);
-		}
+      // video element ko merged stream se attach kare
+      video.srcObject = mergedStream;
+    })
+    .catch(function(error) {
+      console.error('Error capturing video:', error);
+    });
+</script>
 
-		// Send media function
-		function sendMedia(fileUrl) {
-			// Create new media element
-			var mediaElement;
-			if (fileUrl.endsWith(".mp4")) {
-				mediaElement = document.createElement("video");
-				mediaElement.setAttribute("controls", "");
-			} else {
-				mediaElement = document.createElement("img");
-			}
-			mediaElement.setAttribute("src", fileUrl);
-
-			// Add media element to chat area
-			chatArea.appendChild(mediaElement);
-		}
-
-		// Add event listener to send button
-		sendBtn.addEventListener("click", function(event) {
-			event.preventDefault();
-			sendMessage(userInput.value);
-			userInput.value = "";
-		});
-
-		// Add event listener to user input field for "enter" key
-		userInput.addEventListener("keyup", function(event) {
-			event.preventDefault();
-			if (event.keyCode === 13) {
-				sendMessage(userInput.value);
-				userInput.value = "";
-			}
-		});
-
-		// Add event listener to upload button
-		uploadBtn.addEventListener("click", function(event) {
-			event.preventDefault();
-			fileInput.click();
-		});
-
-		// Add event listener to file input field
-		fileInput.addEventListener("change", function(event) {
-			event.preventDefault();
-			var file = event.target.files[0];
-			if (file) {
-				var fileReader = new FileReader();
-				fileReader.onload = function(event) {
-					sendMedia(event.target.result);
-				};
-				fileReader.readAsDataURL(file);
-			}
-		});
-	</script>
 </body>
 </html>
