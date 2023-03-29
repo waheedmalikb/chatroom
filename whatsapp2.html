@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>WhatsApp Clone</title>
+	<style>
+		#chatArea {
+			height: 300px;
+			overflow-y: scroll;
+			border: 1px solid black;
+			padding: 10px;
+		}
+        body {
+  background-color: #1c2331; /* dark blue-black */
+  color: rgba(255, 255, 255, 0.5); /* half-white */
+  font-family: Arial, sans-serif;
+}
+
+.chat-box {
+  background-color: #2c3e50; /* dark blue */
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.chat-box .message {
+  color: white;
+  font-size: 16px;
+  margin-bottom: 5px;
+}
+
+.chat-box .message .time {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  margin-left: 10px;
+}
+
+.chat-box .message .username {
+  font-weight: bold;
+}
+
+.form-control {
+  background-color: #34495e; /* medium blue */
+  color: white;
+  border-radius: 5px;
+  border: none;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.form-control:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.btn {
+  background-color: #2980b9; /* blue */
+  color: white;
+  border-radius: 5px;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background-color: #3498db; /* lighter blue */
+}
+
+	</style>
+</head>
+<body>
+	<h1>WhatsApp Clone</h1>
+	<div id="chatArea">
+		<!-- Chat messages will be added here -->
+	</div>
+	<input type="text" id="messageInput">
+	<button id="sendButton">Send</button>
+	<button id="removeButton">Remove</button>
+	<input type="file" id="fileInput">
+	
+	<script>
+        // Get elements from HTML
+const chatArea = document.getElementById("chatArea");
+const messageInput = document.getElementById("messageInput");
+const sendButton = document.getElementById("sendButton");
+const removeButton = document.getElementById("removeButton");
+const fileInput = document.getElementById("fileInput");
+const imageButton = document.getElementById("imageButton");
+
+// Initialize chat messages array
+let chatMessages = [];
+//my code
+
+messageInput.addEventListener("keyup", function(event) {
+  if (event.key === "Enter") {
+    document.getElementById("sendButton").click()
+  }
+});
+
+// Function to display messages in the chat area
+function displayMessages() {
+	chatArea.innerHTML = "";
+	chatMessages.forEach(message => {
+		const div = document.createElement("div");
+		div.innerHTML = message.text;
+		chatArea.appendChild(div);
+	});
+}
+
+// Function to save messages to local storage
+function saveMessages() {
+	localStorage.setItem("chatMessages", JSON.stringify(chatMessages));
+}
+
+// Function to load messages from local storage
+function loadMessages() {
+	const savedMessages = localStorage.getItem("chatMessages");
+	if (savedMessages) {
+		chatMessages = JSON.parse(savedMessages);
+	}
+	displayMessages();
+}
+
+// Load saved messages on page load
+loadMessages();
+
+// Add event listener for send button
+sendButton.addEventListener("click", () => {
+	const text = messageInput.value.trim();
+	if (text) {
+		chatMessages.push({text: text});
+		messageInput.value = "";
+		displayMessages();
+		saveMessages();
+	}
+});
+
+// Add event listener for remove button
+removeButton.addEventListener("click", () => {
+	chatMessages = [];
+	displayMessages();
+	localStorage.removeItem("chatMessages");
+});
+
+// Add event listener for image button
+sendButton.addEventListener("click", () => {
+	const file = fileInput.files[0];
+	if (file) {
+		const reader = new FileReader();
+		reader.addEventListener("load", () => {
+			const text = `<img src="${reader.result}" width="200px">`;
+            const tex = `<video src="${reader.result}" width="200px">`;
+			chatMessages.push({text: text});
+			displayMessages();
+			saveMessages();
+		});
+		reader.readAsDataURL(file);
+	}
+});
+
+    </script>
+</body>
+</html>
